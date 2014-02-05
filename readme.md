@@ -6,7 +6,7 @@ ie6+
 
 # installation
 
-[component](github.com/component/component)
+[component](https://github.com/component/component)
 
 ```sh
 component install the-swerve/citizen
@@ -14,7 +14,7 @@ component install the-swerve/citizen
 
 # api
 
-## defining
+## definitions
 
 #### model()
 
@@ -23,10 +23,10 @@ var model = require('citizen')
 var Post = model()
 ```
 
-#### Model.where(name, fn, properties)
+#### Model.where(name, fn, dependent_properties)
 
 Create a computed property by using `where`, setting the name, and using a
-function whose parameters are other properties that it depends on. Finally, list those properties at the end so we can recognize which ones this depends on.
+function whose parameters are other properties that it depends on. Finally, list those properties at the end so we can recognize which ones it depends on.
 
 ```js
 Post.where('capitalized_title', function(title) {
@@ -40,7 +40,9 @@ Post.where('capitalized_title', function(title) {
 
 The above will set a 'capitalized_title' property based on a post's title property.
 
-## instantiating
+Properties are lazy. They will be computed when they are accessed.
+
+## instances
 
 #### new Model(data)
 
@@ -55,8 +57,8 @@ var post = new Post({title: 'sup friends'})
 Retrieve the property for model, including computed properties.
 
 ```js
-post.title // 'sup friends'
-post.capitalized_title // 'Sup Friends'
+post.get('title') // 'sup friends'
+post.get('capitalized_title') // 'Sup Friends'
 ```
 
 Pass any number of properties as parameters in `get` to get an array of values back.
@@ -105,9 +107,19 @@ post.has('another_thing') // true
 citizen emits `'change {property}'` events when a property has been set.
 
 ```js
-post.on('change title', function() { console.log('ready to party') })
+var changed = false
+post.on('change title', function() { changed = true })
 post.set('title', 'js party')
-// console says 'ready to party'
+// changed === true
+```
+
+citizen also emits 'change {computed_property}' events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
+
+```js
+var changed = false
+post.on('change capitalized_title', function() { changed = true})
+post.set('title', 'such compute wow amaze')
+// changed === true
 ```
 
 # test
