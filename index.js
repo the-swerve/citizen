@@ -91,7 +91,6 @@ var set = function(prop, val, model) {
 		for (var i = 0; i < deps.length; ++i) {
 			var prop = deps[i]
 			var comp = model._computed[prop]
-			model._data[prop] = get_computed(comp, model)
 			model.emit('change ' + prop)
 		}
 	}
