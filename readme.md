@@ -166,7 +166,7 @@ If more than one comment is found matching the given id, they are all returned a
 Optionally pass in a function:
 
 ```js
-var recent = comments.find('month', function(comment) {
+var recent = comments.find(function(comment) {
 	return comment.get('date') > one_month_ago
 })
 ```
