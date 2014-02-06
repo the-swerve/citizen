@@ -1,6 +1,12 @@
 # citizen
 
-minimal and intelligent data models for your client-side parties with computed properties and change events.
+minimal and intelligent data models for your js parties with computed properties and change events.
+
+Data models provided by citizen are _just_ data models. You can treat them like
+functional data structures. Rather than nesting services like syncing,
+validation, etc within the data model, use the data model as the _boundary_
+between these services. For example, instead of `data.save()`, do
+rest_route.save(data).
 
 ie6+
 
@@ -40,7 +46,7 @@ Post.where('capitalized_title', function(title) {
 
 The above will set a 'capitalized_title' property based on a post's title property.
 
-Properties are lazy. They will be computed when they are accessed.
+Properties are lazy. They will be computed when they are accessed. You also don't need to set the dependent properties before depending on them.
 
 ## instances
 
@@ -120,7 +126,7 @@ var comment = post.get('comment')
 comment.get('text') // 'what'
 ```
 
-Any computed properties and events for the Comment model will be accessible from comment.
+Any computed properties and events for the Comment model will be accessible through post and from comment.
 
 #### Model.nest.many(property, Model)
 
@@ -140,11 +146,11 @@ var Post = model()
 Post.nest.many('comments', Comment)
 var post = new Post({comments: [{text: 'wut', text: 'wat'}]})
 
-var comments = Post.get('comments')
-comments[0].better_comment // 'wat #horse_js'
+var comments = post.get('comments')
+comments.arr[0].better_comment // 'wat #horse_js'
 ```
 
-Now, Post has a property called 'comments' that holds an array of Comments, with each Comment having its own set of computed properties and change events that are settable and gettable through a post.
+Now, Post has a property called 'comments' that holds an array of Comments, with each Comment having its own set of computed properties and change events that are settable and gettable through a post. Reminder: computed properties are lazy; they are only computed on `get`.
 
 #### collection.find(property, val), collection.find(property, fn)
 
@@ -165,9 +171,15 @@ var recent = comments.find('month', function(comment) {
 })
 ```
 
+You can do a find function on a computed property. Just remember that if your computed property is expensive, the find function is going to run on every single element in the collection.
+
+#### collection.arr
+
+Use this property to access the collection's array of models.
+
 ## events
 
-citizen emits `change` and `'change {property}'` events when a property has been set.
+citizen emits `'change'` and `'change {property}'` events when a property has been set.
 
 ```js
 var changed = false
@@ -176,7 +188,7 @@ post.set('title', 'js party')
 // changed === true
 ```
 
-citizen also emits `change {computed_property}` events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
+citizen also emits `'change {computed_property}'` events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
 
 ```js
 var changed = false
@@ -185,11 +197,7 @@ post.set('title', 'such compute wow amaze')
 // changed === true
 ```
 
-#### collection events
-
-citizen emits `change {collection_name}` and `change {id}` events for collections
-
-`change {id}` is only emitted when `collection.set(id, data)` is used.
+You can get `'change {nested}'` and `'change {collection}'` events as expected, and for changes on models within collections, those individual models will emit their own change events.
 
 # test
 
@@ -197,12 +205,4 @@ install [component-test](https://github.com/MatthewMueller/component-test) and r
 
 ```js
 component test browser
-```
-
-## where is the syncing?
-
-Treat this library as a only a data structure, not as an object with a bunch of nested functionality. Use it as the boundary between your various services. That's a fancy way of saying, just do:
-
-```js
-user.set(user_ajax.get(id))
 ```
