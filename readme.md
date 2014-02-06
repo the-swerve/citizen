@@ -6,7 +6,7 @@ Data models provided by citizen are _just_ data models. You can treat them like
 functional data structures. Rather than nesting services like syncing,
 validation, etc within the data model, use the data model as the _boundary_
 between these services. For example, instead of `data.save()`, do
-rest_route.save(data).
+`rest_route.save(data)`.
 
 ie6+
 
