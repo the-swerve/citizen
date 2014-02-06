@@ -2,7 +2,7 @@
   "name": "citizen",
   "repo": "the-swerve/citizen",
   "description": "Minimal evented data models with computed properties.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "keywords": ["model", "data", "event", "property", "computed"],
   "dependencies": {
 		"component/emitter": "1.1.1"
