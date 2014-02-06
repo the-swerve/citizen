@@ -19,6 +19,13 @@ describe('citizen', function() {
 		assert(post.get('title') === 'goodbye')
 	})
 
+	it ('sets multiple models', function() {
+		var Post = model()
+		post0 = new Post({id: 0})
+		post1 = new Post({id: 1})
+		assert(post0.get('id') !== post1.get('id'))
+	})
+
 	it ('gets an array of data', function() {
 		var Post = model()
 		var post = new Post({x: 'x', y: 'y'})
@@ -54,14 +61,99 @@ describe('citizen', function() {
 		assert(changed)
 	})
 
-	it ('emits a change event for a computed prop when its dependencies change', function () {
+	it ('emits a change event for a computed prop when its dependencies change', function() {
 		var Post = model()
-			.where('computed', function(prop) { return 'computed' }, ['prop'])
+			.where('computed', function(prop) { return 'cc' }, ['prop'])
 		var post = new Post({'prop': 'val'})
 		var changed = false
 		post.on('change computed', function() { changed = true })
 		post.set('prop', 'new val')
 		assert(changed)
+	})
+
+	it ('instantiates a model', function() {
+		var Comment = model()
+		var Post = model().nest('comment', Comment)
+		assert(Post)
+	})
+
+	it ('sets and gets a nested model', function() {
+		var Comment = model()
+		var Post = model().nest('comment', Comment)
+		var post = new Post({comment: {x: 1}})
+		var comment = post.get('comment')
+		assert(comment instanceof Comment)
+	})
+
+	it ('gets a computed property on a nested model', function() {
+		var Comment = model()
+			.where('computed', function(x) { return x + 1 }, ['x'])
+		var Post = model().nest('comment', Comment)
+		var post = new Post({comment: {x: 1}})
+		var comment = post.get('comment')
+		assert(comment.get('computed') === 2)
+	})
+
+	it ('instantiates a collection', function() {
+		var Comment = model()
+		var Post = model()
+		Post.nest.many('comments', Comment)
+		assert(Post)
+	})
+
+	it ('sets and gets collection', function() {
+		var Comment = model()
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post()
+		post.set('comments', [{text:'x'}])
+		var comments = post.get('comments')
+		assert(comments.arr[0] instanceof Comment)
+		assert(comments.arr[0].get('text') === 'x')
+	})
+
+	it ('fires change collection', function() {
+		var Comment = model()
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post()
+		var changed = false
+		post.on('change comments', function() {changed=true})
+		post.set('comments', [])
+		assert(changed)
+	})
+
+	it ('gets computed properties for models within collections', function() {
+		var Comment = model()
+			.where('computed', function(x) { return x + 1}, ['x'])
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post({comments: [{x:1}]})
+		var comment = post.get('comments').arr[0]
+		assert(comment.get('computed') === 2)
+	})
+
+	it ('finds a model in a collection by id', function() {
+		var Comment = model()
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post({comments: [{id: 0}, {id: 1}]})
+		var comment = post.get('comments').find('id', 1)
+		assert(comment.get('id'), 1)
+	})
+
+	it ('finds a model in a collection using a function', function() {
+		var Comment = model()
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post({comments: [{id: 0}, {id: 1}]})
+		var comment = post.get('comments').find(function(post){ return post.get('id') < 1 })
+		assert(comment.get('id') === 0)
+	})
+
+	it ('finds a model in a collection by a computed property', function() {
+		var Comment = model()
+			.where('computed', function(id) { return id + 1}, ['id'])
+		var Post = model().nest.many('comments', Comment)
+		var post = new Post({comments: [{id:0}, {id: 1}]})
+		// Find comment with computed=1, which means id=0
+		var comment = post.get('comments').find('computed', 1)
+		assert(comment.get('id') === 0)
 	})
 
 })

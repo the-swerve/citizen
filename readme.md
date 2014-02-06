@@ -6,7 +6,7 @@ ie6+
 
 # installation
 
-[component](https://github.com/component/component)
+with [component](https://github.com/component/component)
 
 ```sh
 component install the-swerve/citizen
@@ -23,7 +23,7 @@ var model = require('citizen')
 var Post = model()
 ```
 
-#### Model.where(name, fn, dependent_properties)
+#### model.where(name, fn, dependent_properties)
 
 Create a computed property by using `where`, setting the name, and using a
 function whose parameters are other properties that it depends on. Finally, list those properties at the end so we can recognize which ones it depends on.
@@ -102,9 +102,72 @@ post.set({another_thing: null})
 post.has('another_thing') // true
 ```
 
+## nesting
+
+If you want your model to have another model nested inside of it, use `.nest`
+
+#### Model.nest(property, Model)
+
+For a single nesting:
+
+```js
+var Comment = model()
+var Post = model()
+Post.nest('comment', Comment)
+var post = new Post({comment: {text: 'what'}})
+
+var comment = post.get('comment')
+comment.get('text') // 'what'
+```
+
+Any computed properties and events for the Comment model will be accessible from comment.
+
+#### Model.nest.many(property, Model)
+
+If you want your model to have an array of other models nested inside of it, use `many`
+
+Create a post with a nested collection of comments under the property 'comments'
+
+```js
+var Comment = model()
+
+// Take any comment and append #horse_js
+Comment.where('better_comment', function(text) {
+	return text + ' #horse_js'
+}, ['text'])
+
+var Post = model()
+Post.nest.many('comments', Comment)
+var post = new Post({comments: [{text: 'wut', text: 'wat'}]})
+
+var comments = Post.get('comments')
+comments[0].better_comment // 'wat #horse_js'
+```
+
+Now, Post has a property called 'comments' that holds an array of Comments, with each Comment having its own set of computed properties and change events that are settable and gettable through a post.
+
+#### collection.find(property, val), collection.find(property, fn)
+
+Retrieve an element in a collection by a property and value.
+
+```js
+var comments = post.get('comments')
+var comment = comments.find('id', 1)
+```
+
+If more than one comment is found matching the given id, they are all returned as an array. If none are found, undefined is returned.
+
+Optionally pass in a function:
+
+```js
+var recent = comments.find('month', function(comment) {
+	return comment.get('date') > one_month_ago
+})
+```
+
 ## events
 
-citizen emits `'change {property}'` events when a property has been set.
+citizen emits `change` and `'change {property}'` events when a property has been set.
 
 ```js
 var changed = false
@@ -113,7 +176,7 @@ post.set('title', 'js party')
 // changed === true
 ```
 
-citizen also emits 'change {computed_property}' events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
+citizen also emits `change {computed_property}` events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
 
 ```js
 var changed = false
@@ -122,10 +185,24 @@ post.set('title', 'such compute wow amaze')
 // changed === true
 ```
 
+#### collection events
+
+citizen emits `change {collection_name}` and `change {id}` events for collections
+
+`change {id}` is only emitted when `collection.set(id, data)` is used.
+
 # test
 
 install [component-test](https://github.com/MatthewMueller/component-test) and run:
 
 ```js
 component test browser
+```
+
+## where is the syncing?
+
+Treat this library as a only a data structure, not as an object with a bunch of nested functionality. Use it as the boundary between your various services. That's a fancy way of saying, just do:
+
+```js
+user.set(user_ajax.get(id))
 ```
