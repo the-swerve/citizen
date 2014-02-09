@@ -1,8 +1,8 @@
 var Emitter = require('emitter')
 
-var model = function() {}
+var model = {}
 
-model.prototype.set = function() {
+model.set = function() {
 	if (arguments.length === 2) {
 		// Set a single property/value
 		set(arguments[0], arguments[1], this)
@@ -14,11 +14,11 @@ model.prototype.set = function() {
 	return this
 }
 
-model.prototype.has = function(prop) {
+model.has = function(prop) {
 	return has(prop, this)
 }
 
-model.prototype.get = function() {
+model.get = function() {
 	// Get all data
 	if (arguments.length === 0) {
 		var data = []
@@ -40,7 +40,7 @@ model.prototype.get = function() {
 }
 
 var collection = function(arr) {
-	this.arr = arr
+	this.all = arr
 	return this
 }
 
@@ -55,8 +55,8 @@ collection.prototype.find = function(x, y) {
 		val = y
 	}
 
-	for (var i = 0; i < this.arr.length; ++i) {
-		var model = this.arr[i]
+	for (var i = 0; i < this.all.length; ++i) {
+		var model = this.all[i]
 		if (func && func(model)) ret.push(model)
 		else if (prop && model.get(prop) === val) ret.push(model)
 	}
@@ -67,58 +67,49 @@ collection.prototype.find = function(x, y) {
 
 var builder = function() {
 
-	var props = []
-	var deps = {}
-	var computed = {}
-	var nested = {}
-	var collections = {}
-
-	var construct = function(data) {
+	var citizen = function(data) {
 		this._data = {}
+		this._props = citizen.props
+		this._deps = citizen.deps
+		this._computed = citizen.computed
+		this._nested = citizen.nested
+		this._collections = citizen.collections
 		if(data) this.set(data)
-		this._props = props
-		this._deps = deps
-		this._computed = computed
-		this._nested = nested
-		this._collections = collections
 	}
 
-	construct.prototype = model.prototype
-	construct.prototype._props = props
-	construct.prototype._deps = deps
-	construct.prototype._computed = computed
-	construct.prototype._nested = nested
-	construct.prototype._collections = collections
-	Emitter(construct.prototype)
+	citizen.props = []
+	citizen.deps = {}
+	citizen.computed = {}
+	citizen.nested = {}
+	citizen.collections = {}
 
-	construct.prototype.clone = function() {
-		return construct(this)
-	}
+	citizen.prototype = model
+	Emitter(citizen.prototype)
 
 	// Set a property to being computed with a function depending on other properties
-	construct.where = function(prop, fn, params) {
-		props.push(prop)
+	citizen.where = function(prop, fn, params) {
+		citizen.props.push(prop)
 		// Initialize property dependencies
 		for (var i = 0; i < params.length; ++i) {
-			var existing = deps[params[i]]
+			var existing = citizen.deps[params[i]]
 			if (existing) existing.push(prop)
-			else deps[params[i]] = [prop]
+			else citizen.deps[params[i]] = [prop]
 		}
-		computed[prop] = {params: params, fn: fn}
-		return construct
+		citizen.computed[prop] = {params: params, fn: fn}
+		return citizen
 	}
 
-	construct.nest = function(prop, Model) {
-		nested[prop] = Model
-		return construct
+	citizen.nest = function(prop, Model) {
+		citizen.nested[prop] = Model
+		return citizen
 	}
 
-	construct.nest.many = function(prop, Model) {
-		collections[prop] = Model
-		return construct
+	citizen.nest.many = function(prop, Model) {
+		citizen.collections[prop] = Model
+		return citizen
 	}
 
-	return construct
+	return citizen
 }
 
 module.exports = builder
@@ -140,7 +131,8 @@ var set = function(prop, val, model) {
 
 	var Nested = model._nested[prop]
 	if (Nested) {
-		model._data[prop] = new Nested(val)
+		var nested = new Nested(val)
+		model._data[prop] = nested
 	} else {
 		var Collection = model._collections[prop]
 		if(Collection) {

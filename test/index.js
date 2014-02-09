@@ -107,8 +107,8 @@ describe('citizen', function() {
 		var post = new Post()
 		post.set('comments', [{text:'x'}])
 		var comments = post.get('comments')
-		assert(comments.arr[0] instanceof Comment)
-		assert(comments.arr[0].get('text') === 'x')
+		assert(comments.all[0] instanceof Comment)
+		assert(comments.all[0].get('text') === 'x')
 	})
 
 	it ('fires change collection', function() {
@@ -126,7 +126,7 @@ describe('citizen', function() {
 			.where('computed', function(x) { return x + 1}, ['x'])
 		var Post = model().nest.many('comments', Comment)
 		var post = new Post({comments: [{x:1}]})
-		var comment = post.get('comments').arr[0]
+		var comment = post.get('comments').all[0]
 		assert(comment.get('computed') === 2)
 	})
 
@@ -154,6 +154,39 @@ describe('citizen', function() {
 		// Find comment with computed=1, which means id=0
 		var comment = post.get('comments').find('computed', 1)
 		assert(comment.get('id') === 0)
+	})
+
+	it ('creates a nest within a nest', function() {
+		var M0 = model()
+		var M1 = model().nest('m0', M0)
+		var M2 = model().nest('m1', M1)
+		// m1 has one m0
+		// m2 has one m1
+		var m2 = new M2({m1: {m0: {x: 0}}})
+		var m0 = m2.get('m1').get('m0')
+		assert.strictEqual(m0.get('x'), 0)
+	})
+
+	it ('creates a nest within a collection', function() {
+		var M0 = model()
+		var M1 = model().nest('m0', M0)
+		var M2 = model().nest.many('m1s', M1)
+		// m1 has one m0
+		// m2 has many m1s
+		var m2 = new M2({m1s: [{m0: {x: 0}}, {m0: {x: 1}}]})
+		var m0 = m2.get('m1s').all[0].get('m0')
+		assert.strictEqual(m0.get('x'), 0)
+	})
+
+	it ('creates a collection within a nest', function() {
+		var M0 = model()
+		var M1 = model().nest.many('m0s', M0)
+		var M2 = model().nest('m1', M1)
+		// m1 has many m0s
+		// m2 has one m1
+		var m2 = new M2({m1: {m0s: [{x: 0}, {x: 1}]}})
+		var m0 = m2.get('m1').get('m0s').find('x', 0)
+		assert.strictEqual(m0.get('x'), 0)
 	})
 
 })

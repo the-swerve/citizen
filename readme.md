@@ -147,7 +147,7 @@ Post.nest.many('comments', Comment)
 var post = new Post({comments: [{text: 'wut', text: 'wat'}]})
 
 var comments = post.get('comments')
-comments.arr[0].better_comment // 'wat #horse_js'
+comments.all[0].better_comment // 'wat #horse_js'
 ```
 
 Now, Post has a property called 'comments' that holds an array of Comments, with each Comment having its own set of computed properties and change events that are settable and gettable through a post. Reminder: computed properties are lazy; they are only computed on `get`.

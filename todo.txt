@@ -1,0 +1,9 @@
+# doing
+
+# future
+
+# done
+rename collection.arr to collection.all
+allow nest within nest
+allow collection within nest
+allow nest within colleciton
