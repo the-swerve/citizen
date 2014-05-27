@@ -1,12 +1,9 @@
 # citizen
 
-minimal and intelligent data models for your js parties with computed properties and change events.
+Minimal data models with change events and computed properties for your js views.
 
-Data models provided by citizen are _just_ data models. You can treat them like
-functional data structures. Rather than nesting services like syncing,
-validation, etc within the data model, use the data model as the _boundary_
-between these services. For example, instead of `data.save()`, do
-`rest_route.save(data)`.
+Data models provided by citizen are _just_ data models. They don't come with
+syncing or validation; other libraries can provide that.
 
 ie6+
 
@@ -20,162 +17,91 @@ component install the-swerve/citizen
 
 # api
 
-## definitions
+#### Model.clone()
 
-#### model()
+Instantiate by cloning Model.
 
 ```js
-var model = require('citizen')
-var Post = model()
+var Model = require('citizen')
+var post = Model.clone()
 ```
 
-#### model.where(name, fn, dependent_properties)
+#### Model.set(data)
 
-Create a computed property by using `where`, setting the name, and using a
-function whose parameters are other properties that it depends on. Finally, list those properties at the end so we can recognize which ones it depends on.
+Pass an object of properties mapped to values to set new data.
 
 ```js
-Post.where('capitalized_title', function(title) {
+post.set({title: "lol javascript"})
+```
+
+#### Model.get(property)
+
+Retrieve any property, including computed properties.
+
+```js
+post.get('title') // 'sup friends'
+```
+
+#### Model.where(name, fn)
+
+Create a computed property by using `where`, setting the property name, and
+using a function whose parameters are other properties that it depends on.
+
+```js
+post.where('capitalized_title', function(title) {
 	var words = title.split(' ')
 	var caps = words.map(function(w) {
 		return w[0].toUpperCase() + w.substr(1).toLowerCase()
 	})
 	return caps.join(' ')
-}, ['title'])
+})
+
+post.get('title') // 'sup friends'
+post.get('capitalized_title') // 'Sup Friends'
 ```
 
 The above will set a 'capitalized_title' property based on a post's title property.
 
 Properties are lazy. They will be computed when they are accessed. You also don't need to set the dependent properties before depending on them.
 
-## instances
+#### Model.has_one(property_name, Model)
 
-#### new Model(data)
-
-Instantiate a new model with provided data.
+`has_one` creates a nested Model. It lets you have a field in your model that's automatically instanstiated as another model.
 
 ```js
-var post = new Post({title: 'sup friends'})
+var comment = Model()
+post.has_one('comment', Comment)
+post.set({comment: {text: 'my comment'}, plain_obj: {plain_prop: 'hallo welt'}})
+
+post.get('comment').get('text') // 'my comment'
+post.get('plain_obj').plain_prop // 'hallo welt'
 ```
 
-#### Model#get(), Model#get(property), Model#get(properties)
+That way, every time you set a comment object inside post, it will be a Model rather than just a plain Object.
 
-Retrieve the property for model, including computed properties.
+#### Model.has_many(property, Model)
 
-```js
-post.get('title') // 'sup friends'
-post.get('capitalized_title') // 'Sup Friends'
-```
-
-Pass any number of properties as parameters in `get` to get an array of values back.
-
-```js
-post.get('title', 'capitalized_title') // ['sup friends', 'Sup Friends']
-```
-
-If you don't pass anything, it simply returns all of the data.
-
-```js
-post.get() // {title: 'sup friends', capitalized_title: 'Sup Friends'}
-```
-
-#### Model#set(data), Model#set(property, value)
-
-Pass an object of properties mapped to values to set new data.
-
-```js
-post.set({'title', "lol javascript"})
-```
-
-You can also just pass two params to easily set one property
-
-```js
-post.set('title', "what is this i don't even")
-```
-
-#### Model#has(property)
-
-Test whether a model has a property
-
-```js
-post.has('title') // true
-post.has('wut') // false
-
-post.set({thing: undefined})
-post.has('thing') // false
-
-post.set({another_thing: null})
-post.has('another_thing') // true
-```
-
-## nesting
-
-If you want your model to have another model nested inside of it, use `.nest`
-
-#### Model.nest(property, Model)
-
-For a single nesting:
-
-```js
-var Comment = model()
-var Post = model()
-Post.nest('comment', Comment)
-var post = new Post({comment: {text: 'what'}})
-
-var comment = post.get('comment')
-comment.get('text') // 'what'
-```
-
-Any computed properties and events for the Comment model will be accessible through post and from comment.
-
-#### Model.nest.many(property, Model)
-
-If you want your model to have an array of other models nested inside of it, use `many`
+If you want your model to have an array of other models nested inside of it, use `has_many`
 
 Create a post with a nested collection of comments under the property 'comments'
 
 ```js
-var Comment = model()
+var comment = Model()
 
-// Take any comment and append #horse_js
+// Take any comment and append #syngery
 Comment.where('better_comment', function(text) {
-	return text + ' #horse_js'
-}, ['text'])
+	return text + ' #synergy'
+})
 
-var Post = model()
-Post.nest.many('comments', Comment)
+var post = Model()
+post.has_many('comments', Comment)
 var post = new Post({comments: [{text: 'wut', text: 'wat'}]})
 
 var comments = post.get('comments')
-comments.all[0].better_comment // 'wat #horse_js'
+comments[0].better_comment // 'wut #synergy'
 ```
 
-Now, Post has a property called 'comments' that holds an array of Comments, with each Comment having its own set of computed properties and change events that are settable and gettable through a post. Reminder: computed properties are lazy; they are only computed on `get`.
-
-#### collection.find(property, val), collection.find(property, fn)
-
-Retrieve an element in a collection by a property and value.
-
-```js
-var comments = post.get('comments')
-var comment = comments.find('id', 1)
-```
-
-If more than one comment is found matching the given id, they are all returned as an array. If none are found, undefined is returned.
-
-Optionally pass in a function:
-
-```js
-var recent = comments.find(function(comment) {
-	return comment.get('date') > one_month_ago
-})
-```
-
-You can do a find function on a computed property. Just remember that if your computed property is expensive, the find function is going to run on every single element in the collection.
-
-#### collection.arr
-
-Use this property to access the collection's array of models.
+Now, Post has a property called 'comments' that holds an array of comment Models, with each Comment having its own set of computed properties and change events that are settable and gettable through a post. This nested array of models will only get instantiated when the whole thing is `set`, and not on push or assigning to individual indexes (for now).
 
 ## events
 
@@ -188,7 +114,7 @@ post.set('title', 'js party')
 // changed === true
 ```
 
-citizen also emits `'change {computed_property}'` events for computed properties! If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
+citizen also emits `'change {computed_property}'` events for computed properties. If any properties that a computed property depends on are changed, a change event for that computed property is emitted.
 
 ```js
 var changed = false
@@ -197,7 +123,7 @@ post.set('title', 'such compute wow amaze')
 // changed === true
 ```
 
-You can get `'change {nested}'` and `'change {collection}'` events as expected, and for changes on models within collections, those individual models will emit their own change events.
+You can get `'change {has_one}'` and `'change {has_many}'` events as expected, and for changes on models within collections, those individual models will emit their own change events.
 
 # test
 
