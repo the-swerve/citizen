@@ -16,7 +16,7 @@
 		"url": "https://github.com/the-swerve/citizen.git"
 	},
 	"scripts": {
-		"test": "zuul -- test/index.js"
+		"test": "zuul --local 3333 --ui mocha-qunit -- test/index.js"
 	},
 	"dependencies": {
 		"obj-clone": "0.1.0",
