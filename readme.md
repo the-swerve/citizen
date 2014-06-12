@@ -124,11 +124,3 @@ post.set('title', 'such compute wow amaze')
 ```
 
 You can get `'change {has_one}'` and `'change {has_many}'` events as expected, and for changes on models within collections, those individual models will emit their own change events.
-
-# test
-
-install [component-test](https://github.com/MatthewMueller/component-test) and run:
-
-```js
-component test browser
-```
