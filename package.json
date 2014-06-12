@@ -1,0 +1,30 @@
+{
+	"name": "model-citizen",
+	"version": "0.4.0",
+	"description": "Very simple client-side models with events and computed properties",
+	"keywords": [ "client", "browser", "model", "data", "event", "computed" ],
+	"bugs": "https://github.com/the-swerve/citizen/issues",
+	"url": "https://github.com/the-swerve/citizen",
+	"license": "MIT",
+	"author": {
+		"name": "Jay R Bolton",
+		"email": "jayrbolton@gmail.com",
+		"url": "https://github.com/the-swerve"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/the-swerve/citizen.git"
+	},
+	"scripts": {
+		"test": "zuul -- test/index.js"
+	},
+	"dependencies": {
+		"obj-clone": "0.1.0",
+		"emitter-component": "1.1.1"
+	},
+  "devDependencies": {
+		"zuul": "1.6.5",
+    "mocha": "1.20.1",
+		"domify": "1.2.2"
+  }
+}
