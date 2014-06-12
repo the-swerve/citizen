@@ -1,8 +1,8 @@
-var Emitter = require('emitter')
-var Obj = require('obj')
+var Emitter = require('emitter-component')
+var Obj = require('obj-clone')
 
 var Model = Obj.clone()
-Model.init = function() {
+Model.init = function(data) {
 	Emitter(Model)
 	this.computed = this.computed || {}
 	this.dependents = this.dependents || {}
@@ -10,6 +10,8 @@ Model.init = function() {
 	this.has_manys = this.has_manys || {}
 	this.data = {}
 	this.properties = []
+	if(data)
+		this.set(data)
 	return this
 }
 

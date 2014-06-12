@@ -17,9 +17,9 @@ component install the-swerve/citizen
 
 # api
 
-#### Model.clone()
+#### Model.clone(data)
 
-Instantiate by cloning Model.
+Instantiate by creating a Model object, optionally passing in any initial data.
 
 ```js
 var Model = require('citizen')
@@ -34,7 +34,7 @@ Pass an object of properties mapped to values to set new data.
 post.set({title: "lol javascript"})
 ```
 
-#### Model.get(property)
+#### Model.get('property')
 
 Retrieve any property, including computed properties.
 

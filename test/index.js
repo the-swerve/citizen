@@ -1,6 +1,6 @@
 var assert = require('assert')
-var Model = require('citizen')
-var Obj = require('obj')
+var Model = require('../')
+var Obj = require('obj-clone')
 
 describe('citizen', function() {
 
