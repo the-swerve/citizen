@@ -16,6 +16,13 @@ describe('citizen', function() {
 		assert(post.get('title') === 'goodbye')
 	})
 
+	it ('sets and gets a single string field', function() {
+		var post = Model.clone().set('title', 'x')
+		assert(post.get('title') === 'x')
+		post.set({title: 'goodbye'})
+		assert(post.get('title') === 'goodbye')
+	})
+
 	it ('sets multiple models', function() {
 		var post0 = Model.clone().set({id: 0})
 		var post1 = Model.clone().set({id: 1})

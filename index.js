@@ -17,8 +17,13 @@ Model.init = function(data) {
 
 module.exports = Model
 
-Model.set = function(data) {
+Model.set = function(x, y) {
 	var self = this
+	var data = {}
+	if (typeof x === 'string')
+		data[x] = y
+	else if (typeof x === 'object')
+		data = x
 	for (var prop in data) {
 		if (self.properties.indexOf(prop) === -1)
 			self.properties.push(prop)
