@@ -57,16 +57,16 @@ Model.get = function(prop) {
 }
 
 // Set a property to being computed with a function depending on other properties
-Model.where = function(prop, fn) {
+Model.where = function(prop, dependents, fn) {
 	var self = this
 	self.properties.push(prop)
-	var params = get_param_names(fn)
 	// Initialize property dependents
-	each(params, function(param) {
-		if (self.dependents[param]) self.dependents[param].push(prop)
-		else self.dependents[param] = [prop]
+	each(dependents, function(dependent) {
+		if (self.dependents[dependent])
+			self.dependents[dependent].push(prop)
+		else self.dependents[dependent] = [prop]
 	})
-	self.computed[prop] = {params: params, fn: fn}
+	self.computed[prop] = {params: dependents, fn: fn}
 	return self
 }
 
@@ -81,16 +81,6 @@ Model.has_many = function(prop_name, NestedModel) {
 }
 
 // Utils
-
-// Return an array of strings of the names of the variables for the parameters of a function
-function get_param_names(fn) {
-	var strip_comments = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-	var arg_names = /([^\s,]+)/g;
-	var fn_str = fn.toString().replace(strip_comments, '')
-	var result = fn_str.slice(fn_str.indexOf('(') + 1, fn_str.indexOf(')')).match(arg_names)
-	if(result === null) result = []
-	return result
-}
 
 // for loops sux
 function each(arr, fn) { for(var i = 0; i < arr.length; ++i) fn(arr[i]) }

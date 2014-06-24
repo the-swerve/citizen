@@ -42,13 +42,13 @@ Retrieve any property, including computed properties.
 post.get('title') // 'sup friends'
 ```
 
-#### Model.where(name, fn)
+#### Model.where(name, dependents, fn)
 
 Create a computed property by using `where`, setting the property name, and
 using a function whose parameters are other properties that it depends on.
 
 ```js
-post.where('capitalized_title', function(title) {
+post.where('capitalized_title', ['title'], function(title) {
 	var words = title.split(' ')
 	var caps = words.map(function(w) {
 		return w[0].toUpperCase() + w.substr(1).toLowerCase()
@@ -60,7 +60,7 @@ post.get('title') // 'sup friends'
 post.get('capitalized_title') // 'Sup Friends'
 ```
 
-The above will set a 'capitalized_title' property based on a post's title property.
+The above will set a 'capitalized_title' property based on a post's title property. We have to list each dependent property explicitly as a string since so many minifiers/uglifiers will change local variable names, so we can't necessarily extract the property names from the parameters in the supplied function.
 
 Properties are lazy. They will be computed when they are accessed. You also don't need to set the dependent properties before depending on them.
 

@@ -37,7 +37,7 @@ describe('citizen', function() {
 
 	it ('sets computed properties', function() {
 		var post = Model.clone()
-			.where('one', function(zero) {return zero + 1})
+			.where('one', ['zero'], function(zero) {return zero + 1})
 			.set({zero: 0})
 		assert(post.get('zero') === 0)
 		assert(post.get('one') === 1)
@@ -53,7 +53,7 @@ describe('citizen', function() {
 
 	it ('emits a change event for a computed prop when its dependencies change', function() {
 		var post = Model.clone()
-			.where('computed', function(prop) { return 'cc' })
+			.where('computed', ['prop'], function(prop) { return 'cc' })
 			.set({prop: 'val'})
 		var changed = false
 		post.on('change computed', function() { changed = true })
@@ -71,7 +71,7 @@ describe('citizen', function() {
 
 	it ('gets a computed property on a has_one model', function() {
 		var Comment = Model.clone()
-			.where('computed', function(x) { return x + 1 })
+			.where('computed', ['x'], function(x) { return x + 1 })
 		var post = Model.clone().has_one('comment', Comment)
 			.set({comment: {x: 1}})
 		assert(post.get('comment').get('computed') === 2)
@@ -88,7 +88,7 @@ describe('citizen', function() {
 
 	it ('gets computed properties for models within nested has_manys', function() {
 		var Comment = Model.clone()
-			.where('computed', function(x) { return x + 1})
+			.where('computed', ['x'], function(x) { return x + 1})
 		var Post = Model.clone().has_many('comments', Comment)
 			.set({comments: [{x:1}]})
 		assert(Post.get('comments')[0].get('computed') === 2)
