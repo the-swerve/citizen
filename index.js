@@ -25,7 +25,7 @@ Model.set = function(x, y) {
 	else if (typeof x === 'object')
 		data = x
 	for (var prop in data) {
-		if (self.properties.indexOf(prop) === -1)
+		if (arr_has(self.properties, prop))
 			self.properties.push(prop)
 		if (self.has_ones[prop])
 			self.data[prop] = self.has_ones[prop].clone().set(data[prop])
@@ -85,3 +85,8 @@ Model.has_many = function(prop_name, NestedModel) {
 // for loops sux
 function each(arr, fn) { for(var i = 0; i < arr.length; ++i) fn(arr[i]) }
 function map(arr, fn) { var a = []; for(var i = 0; i < arr.length; ++i) a.push(fn(arr[i])); return a }
+
+function arr_has(arr, elem) {
+	for (var i = 0; i < arr.length; ++i) if(arr[i] === elem) return true
+	return false
+}
